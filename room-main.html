@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>房間選單 - 出遊輕鬆GO</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #E6DED3;
+            font-family: "Microsoft JhengHei", sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            position: relative;
+        }
+
+        /* 頂部導覽與頭貼區域 */
+        .top-bar {
+            position: absolute;
+            top: 20px;
+            right: 40px;
+            display: flex;
+            align-items: center;
+        }
+
+        .profile-circle {
+            width: 60px;
+            height: 60px;
+            background-color: #CDC1B0;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+        }
+
+        /* 圖二：登出彈窗 */
+        .user-popover {
+            display: none;
+            position: absolute;
+            top: 70px;
+            right: 0;
+            background-color: #CDC1B0;
+            width: 280px;
+            padding: 30px;
+            border-radius: 40px;
+            box-shadow: 0px 15px 30px rgba(0,0,0,0.2);
+            z-index: 100;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .popover-row {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #4A3E31;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .user-name-box {
+            background-color: #FFFFFF;
+            padding: 8px 20px;
+            border-radius: 10px;
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .logout-btn {
+            background-color: #FFFFFF;
+            border: none;
+            padding: 12px 40px;
+            border-radius: 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #4A3E31;
+            cursor: pointer;
+        }
+
+        /* 2x3 網格容器 */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 240px);
+            grid-template-rows: repeat(2, 240px);
+            gap: 40px;
+        }
+
+        .feature-btn {
+            background-color: #CDC1B0;
+            border: none;
+            border-radius: 50px;
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: #333333;
+            cursor: pointer;
+            box-shadow: 0px 10px 25px rgba(0,0,0,0.08);
+            transition: transform 0.2s, background-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .feature-btn:hover {
+            background-color: #BCB0A0;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <div class="profile-circle" onclick="togglePopover()"></div>
+        <div id="userPopover" class="user-popover">
+            <div class="popover-row">
+                帳號名稱 <div id="currentUserName" class="user-name-box">載入中...</div>
+            </div>
+            <button class="logout-btn" onclick="handleLogout()">登出</button>
+        </div>
+    </div>
+
+    <div class="menu-grid">
+        <button class="feature-btn" onclick="openFeature('date')">日期</button>
+        <button class="feature-btn" onclick="openFeature('location')">地點</button>
+        <button class="feature-btn" onclick="openFeature('hotel')">住宿</button>
+        <button class="feature-btn" onclick="openFeature('spots')">景點</button>
+        <button class="feature-btn" onclick="openFeature('expense')">支出</button>
+        <button class="feature-btn" onclick="openFeature('settlement')">支出結算</button>
+    </div>
+
+    <script>
+        // 初始化：顯示帳號名稱
+        window.onload = function() {
+            const user = localStorage.getItem('loginUser') || "未登入";
+            document.getElementById('currentUserName').innerText = user;
+        };
+
+        // 切換登出彈窗顯示/隱藏
+        function togglePopover() {
+            const popover = document.getElementById('userPopover');
+            popover.style.display = (popover.style.display === 'flex') ? 'none' : 'flex';
+        }
+
+        // 登出功能：清除資料並回到起始畫面
+        function handleLogout() {
+            localStorage.clear();
+            location.href = 'index.html';
+        }
+
+        // 修改點：點擊功能按鈕後的跳轉邏輯
+        function openFeature(type) {
+            console.log("進入功能：" + type);
+            if (type === 'date') {
+                location.href = 'date-plan.html'; // 跳轉至日期頁面
+            } else {
+                alert("「" + type + "」功能開發中！");
+            }
+        }
+
+        // 點擊頁面其他地方關閉彈窗
+        window.onclick = function(event) {
+            const popover = document.getElementById('userPopover');
+            const profile = document.querySelector('.profile-circle');
+            if (event.target !== popover && event.target !== profile && !popover.contains(event.target)) {
+                popover.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

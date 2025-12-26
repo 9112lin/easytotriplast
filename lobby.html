@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>大廳 - 出遊輕鬆GO</title>
+    <style>
+        :root {
+            --bg: #E6DED3;
+            --nav: #CDC1B0;
+            --item: #BCB0A0;
+            --dark: #4A3E31;
+            --icon-purple: #4B2C7F;
+        }
+        body { margin: 0; background-color: var(--bg); font-family: "Microsoft JhengHei"; color: var(--dark); }
+        
+        /* 導覽列 */
+        .navbar { background-color: var(--nav); display: flex; justify-content: center; padding: 15px 0; position: relative; }
+        .nav-btn { background: none; border: none; font-size: 1.6rem; font-weight: bold; margin: 0 15px; cursor: pointer; color: var(--dark); }
+        
+        /* 右上角按鈕樣式 */
+        .user-avatar {
+            position: absolute;
+            top: 15px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: white;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            transition: transform 0.2s ease;
+        }
+
+        .user-avatar i {
+            color: var(--icon-purple);
+            font-size: 26px;
+        }
+
+        .user-avatar:hover {
+            transform: scale(1.05);
+        }
+
+        .main-container { width: 90%; max-width: 800px; margin: 50px auto; text-align: center; }
+        .room-title { font-size: 2.5rem; margin-bottom: 40px; font-weight: bold; }
+
+        /* 選單網格 */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            padding: 20px;
+        }
+
+        .menu-card {
+            background: var(--nav);
+            padding: 40px 20px;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            color: var(--dark);
+            text-decoration: none;
+        }
+        .menu-card:hover { transform: translateY(-5px); background: var(--item); color: white; }
+        .menu-card i { font-size: 3rem; }
+        .menu-card span { font-size: 1.5rem; font-weight: bold; }
+
+        /* --- 登出選單樣式 --- */
+        .user-menu {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            position: absolute;
+            top: 75px;
+            right: 20px;
+            background: var(--nav);
+            padding: 25px 30px;
+            border-radius: 35px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            z-index: 1000;
+            min-width: 220px;
+        }
+        
+        .user-info-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        .user-label {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--dark);
+            white-space: nowrap;
+        }
+
+        /* 名字區塊樣式 */
+        .user-name-box { 
+            background: white; 
+            padding: 8px 15px; 
+            border-radius: 15px; 
+            flex-grow: 1;
+            display: flex;             
+            justify-content: space-between; 
+            align-items: center;       
+            color: #333; 
+            font-size: 1.1rem;
+            min-width: 100px;
+            cursor: pointer;         
+            transition: background 0.2s;
+        }
+        .user-name-box:hover {
+            background: #f0f0f0;
+        }
+
+        /* 編輯圖示樣式 */
+        .edit-icon {
+            color: #888;
+            font-size: 0.9rem;
+            margin-left: 8px;
+        }
+
+        .logout-btn {
+            width: 100%;
+            background-color: #FFFFFF;
+            border: none;
+            padding: 12px 0;
+            border-radius: 30px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--dark);
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: background 0.2s;
+        }
+        .logout-btn:hover { background-color: #f9f9f9; }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+<div class="navbar">
+    <div class="nav-btn">出遊輕鬆GO - 房間大廳</div>
+    
+    <div class="user-avatar" onclick="toggleMenu()">
+        <i class="fa-solid fa-user"></i>
+    </div>
+    
+    <div id="userMenu" class="user-menu">
+        <div class="user-info-row">
+            <span class="user-label">帳號名稱</span>
+            <div class="user-name-box" onclick="editUsername()" title="點擊修改暱稱">
+                <span id="displayUsername" style="flex-grow:1; text-align:center;"></span>
+                <i class="fa-solid fa-pen edit-icon"></i>
+            </div>
+        </div>
+        <button class="logout-btn" onclick="logout()">登出</button>
+    </div>
+</div>
+
+<div class="main-container">
+    <h1 class="room-title">歡迎來到：<span id="displayRoomName"></span></h1>
+
+    <div class="menu-grid">
+        <div class="menu-card" onclick="location.href='date-plan.html'">
+            <i class="fa-solid fa-calendar-days"></i>
+            <span>日期</span>
+        </div>
+
+        <div class="menu-card" onclick="location.href='location.html'">
+            <i class="fa-solid fa-map-location-dot"></i>
+            <span>地點</span>
+        </div>
+
+        <div class="menu-card" onclick="location.href='hotel.html'">
+            <i class="fa-solid fa-hotel"></i>
+            <span>住宿</span>
+        </div>
+
+        <div class="menu-card" onclick="location.href='spots.html'">
+            <i class="fa-solid fa-camera-retro"></i>
+            <span>景點</span>
+        </div>
+
+        <div class="menu-card" onclick="location.href='expense.html'">
+            <i class="fa-solid fa-hand-holding-dollar"></i>
+            <span>支出</span>
+        </div>
+
+        <div class="menu-card" onclick="location.href='settle.html'">
+            <i class="fa-solid fa-file-invoice-dollar"></i>
+            <span>支出結算</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ★★★ 請確認這個 URL 是否為您最新部署的網址 ★★★
+    const API_URL = "https://script.google.com/macros/s/AKfycbydMNR1nzMXrq2I3AVaYFJXtwBV5BlG6IRpABjv-3gzVl_mLS2nsrGjoU7iYXEWnlIjcA/exec"; 
+
+    // 修正處：直接獲取，不設定預設值 test
+    const roomName = localStorage.getItem('roomName');
+    const username = localStorage.getItem('username');
+
+    window.onload = () => {
+        // 1. 檢查房間
+        if (!roomName) {
+            alert("請先進入房間！");
+            location.href = 'index.html';
+            return;
+        }
+        // 2. 修正處：檢查使用者 (如果是 null 或 undefined，代表沒登入)
+        if (!username || username === "null" || username === "undefined") {
+            alert("您尚未登入，請重新登入！");
+            location.href = 'index.html';
+            return;
+        }
+
+        // 資料確認無誤，顯示在畫面上
+        document.getElementById('displayRoomName').innerText = roomName;
+        document.getElementById('displayUsername').innerText = username;
+    };
+
+    function toggleMenu() {
+        const m = document.getElementById('userMenu');
+        if (m.style.display === 'flex') {
+            m.style.display = 'none';
+        } else {
+            m.style.display = 'flex';
+        }
+    }
+
+    // 點擊頁面其他地方關閉選單
+    window.onclick = function(event) {
+        if (!event.target.closest('.user-avatar') && !event.target.closest('.user-menu')) {
+            const m = document.getElementById('userMenu');
+            if (m.style.display === 'flex') {
+                m.style.display = 'none';
+            }
+        }
+    }
+
+    // 修改帳號名稱功能
+    async function editUsername() {
+        if (API_URL.includes("你的_GAS_API_URL")) {
+            alert("請先設定 API_URL！");
+            return;
+        }
+
+        let currentName = localStorage.getItem('username');
+        if (!currentName || currentName === "null" || currentName === "undefined") {
+            // 如果 storage 掉了，嘗試抓畫面上的，再不行就踢出去
+            currentName = document.getElementById('displayUsername').innerText;
+            if(!currentName) {
+                 alert("錯誤：無法取得目前的帳號名稱，請重新登入。");
+                 location.href = 'index.html';
+                 return;
+            }
+        }
+
+        const newName = prompt("請輸入新的帳號名稱 (這將會改變您的登入帳號):", currentName);
+
+        if (newName === null) return; // 按取消
+        if (newName.trim() === "") {
+            alert("名稱不能為空！");
+            return;
+        }
+        if (newName.trim() === currentName) {
+            return; // 名稱沒變
+        }
+
+        // 畫面顯示更新中
+        const nameSpan = document.getElementById('displayUsername');
+        const originalText = nameSpan.innerText;
+        nameSpan.innerText = "更新中...";
+
+        try {
+            const resp = await fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'updateUsername',
+                    oldName: currentName,
+                    newName: newName.trim()
+                })
+            });
+            
+            const result = await resp.text();
+            console.log("後端回傳:", result);
+
+            if (result === "success") {
+                alert("更名成功！請記住您的新帳號：" + newName.trim());
+                localStorage.setItem('username', newName.trim());
+                nameSpan.innerText = newName.trim();
+            } else if (result === "exists") {
+                alert("更名失敗：該帳號名稱已被其他人使用。");
+                nameSpan.innerText = originalText;
+            } else {
+                alert("更名失敗：" + result);
+                nameSpan.innerText = originalText;
+            }
+        } catch (err) {
+            console.error(err);
+            alert("連線發生錯誤：" + err.message);
+            nameSpan.innerText = originalText;
+        }
+    }
+
+    function logout() {
+        if(confirm("確定要登出嗎？")) {
+            localStorage.clear();
+            location.href = 'index.html';
+        }
+    }
+</script>
+
+</body>
+</html>

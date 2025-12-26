@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>註冊帳號 - 出遊輕鬆GO</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #E6DED3;
+            font-family: "Microsoft JhengHei", sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .card-container {
+            background-color: #CDC1B0;
+            width: 500px;
+            padding: 60px 40px;
+            border-radius: 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0px 20px 40px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .input-label {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #333333;
+            margin-bottom: 15px;
+        }
+
+        .input-field {
+            width: 100%;
+            background-color: #FFFFFF;
+            border: none;
+            border-radius: 40px;
+            padding: 20px;
+            font-size: 1.4rem;
+            margin-bottom: 35px;
+            text-align: center;
+            outline: none;
+            box-shadow: inset 0px 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .btn-group {
+            display: flex;
+            flex-direction: row;
+            gap: 30px;
+            margin-top: 10px;
+        }
+
+        .form-btn {
+            background-color: #BCB0A0;
+            border: none;
+            padding: 15px 50px;
+            border-radius: 30px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333333;
+            cursor: pointer;
+        }
+
+        .form-btn:hover {
+            background-color: #A99E8F;
+        }
+
+        .lock-decoration {
+            position: absolute;
+            bottom: -50px;
+            right: -80px;
+            font-size: 160px;
+            opacity: 0.2;
+            pointer-events: none;
+        }
+
+        /* 彈窗背景遮罩 */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        /* 彈窗米色框 */
+        .modal-box {
+            background-color: #CDC1B0;
+            padding: 70px 90px;
+            border-radius: 50px;
+            position: relative;
+            text-align: center;
+            box-shadow: 0px 15px 30px rgba(0,0,0,0.2);
+        }
+
+        /* 彈窗內部白色框 */
+        .modal-white-content {
+            background-color: #FFFFFF;
+            padding: 30px 60px;
+            border-radius: 25px;
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: #333333;
+            white-space: nowrap;
+        }
+
+        /* 紅色叉叉按鈕 */
+        .close-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #FF5F56;
+            color: white;
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card-container">
+        <div class="input-label">帳號名稱</div>
+        <input type="text" id="reg_username" class="input-field">
+
+        <div class="input-label">密碼：</div>
+        <input type="password" id="reg_password" class="input-field">
+
+        <div class="btn-group">
+            <button class="form-btn" onclick="location.href='index.html'">取消</button>
+            <button class="form-btn" onclick="handleRegister()">確認</button>
+        </div>
+
+        <div class="lock-decoration">🔒</div>
+    </div>
+
+    <div id="modal-success" class="modal-overlay">
+        <div class="modal-box">
+            <button class="close-button" onclick="location.href='index.html'">✕</button>
+            <div class="modal-white-content">註冊成功！</div>
+        </div>
+    </div>
+
+    <div id="modal-exists" class="modal-overlay">
+        <div class="modal-box">
+            <button class="close-button" onclick="closeExistsModal()">✕</button>
+            <div class="modal-white-content">帳號名稱已被使用</div>
+        </div>
+    </div>
+
+    <script>
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbydMNR1nzMXrq2I3AVaYFJXtwBV5BlG6IRpABjv-3gzVl_mLS2nsrGjoU7iYXEWnlIjcA/exec";
+
+        function closeExistsModal() {
+            document.getElementById('modal-exists').style.display = 'none';
+        }
+
+        async function handleRegister() {
+            const user = document.getElementById('reg_username').value;
+            const pass = document.getElementById('reg_password').value;
+
+            if(!user || !pass) { alert("請完整輸入帳號與密碼"); return; }
+
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'register', username: user, password: pass })
+                });
+                const result = await response.text();
+
+                if (result.trim() === "exists") {
+                    document.getElementById('modal-exists').style.display = 'flex';
+                } else {
+                    document.getElementById('modal-success').style.display = 'flex';
+                }
+            } catch (e) {
+                alert("伺服器連線錯誤");
+            }
+        }
+    </script>
+</body>
+</html>

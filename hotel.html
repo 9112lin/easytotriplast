@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>住宿 - 出遊輕鬆GO</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { 
+            --bg: #E6DED3; 
+            --nav: #CDC1B0; 
+            --item: #BCB0A0; 
+            --dark: #4A3E31; 
+            --avatar-bg: #FFFFFF; 
+            --icon-purple: #4B2C7F; 
+            --money-bg: #8B7E6F; /* 新增：統一按鈕顏色 */
+        }
+        body { margin: 0; background-color: var(--bg); font-family: "Microsoft JhengHei"; color: var(--dark); overflow: hidden; }
+        
+        /* 導覽列 */
+        .navbar { background-color: var(--nav); display: flex; justify-content: center; padding: 15px 0; position: relative; z-index: 1001; }
+        .nav-btn { background: none; border: none; font-size: 1.6rem; font-weight: bold; margin: 0 15px; cursor: pointer; color: var(--dark); }
+        .nav-btn.active { color: white !important; }
+        
+        /* 右側圓形頭像按鈕 */
+        .user-avatar { 
+            position: absolute; 
+            right: 30px; 
+            width: 50px; 
+            height: 50px; 
+            background: #FFFFFF; 
+            border-radius: 50%; 
+            cursor: pointer; 
+            border: none;
+            outline: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15); 
+            transition: transform 0.2s ease;
+        }
+
+        .user-avatar i {
+            color: var(--icon-purple);
+            font-size: 26px;
+        }
+
+        .user-avatar:hover {
+            transform: scale(1.05);
+        }
+
+        /* 帳號選單彈窗 */
+        .user-menu { 
+            display: none; 
+            flex-direction: column;
+            align-items: center;
+            position: absolute; 
+            top: 75px; 
+            right: 20px; 
+            background: var(--nav); 
+            padding: 25px 30px; 
+            border-radius: 35px; 
+            z-index: 3000; 
+            min-width: 220px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15); 
+        }
+        
+        .user-info-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        .user-label {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--dark);
+            white-space: nowrap;
+        }
+
+        /* 名字區塊樣式 */
+        .user-name-box { 
+            background: white; 
+            padding: 8px 15px; 
+            border-radius: 15px; 
+            flex-grow: 1;
+            display: flex;            
+            justify-content: space-between; 
+            align-items: center;      
+            color: #333; 
+            font-size: 1.1rem;
+            min-width: 100px;
+            cursor: pointer;          
+            transition: background 0.2s;
+        }
+        .user-name-box:hover {
+            background: #f0f0f0;
+        }
+
+        /* 編輯圖示樣式 */
+        .edit-icon {
+            color: #888;
+            font-size: 0.9rem;
+            margin-left: 8px;
+        }
+
+        .logout-btn { 
+            background: white; 
+            border: none; 
+            width: 100%; 
+            padding: 12px 0; 
+            border-radius: 30px; 
+            font-weight: bold; 
+            font-size: 1.3rem; 
+            cursor: pointer; 
+            color: var(--dark); 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: background 0.2s;
+        }
+        .logout-btn:hover { background-color: #f9f9f9; }
+
+        /* 主容器 */
+        .main-card { width: 85%; max-width: 900px; margin: 40px auto; background: var(--nav); border-radius: 60px; padding: 40px; height: 65vh; display: flex; flex-direction: column; position: relative; }
+        .scroll-box { flex-grow: 1; overflow-y: auto; padding-right: 15px; display: flex; flex-direction: column; }
+        
+        .loading-text { 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            flex-grow: 1; 
+            font-size: 1.3rem; 
+            font-weight: bold; 
+            color: #666; 
+            text-align: center;
+            min-height: 200px;
+        }
+
+        .scroll-box::-webkit-scrollbar { width: 14px; }
+        .scroll-box::-webkit-scrollbar-track { background: var(--dark); border-radius: 10px; }
+        .scroll-box::-webkit-scrollbar-thumb { background: white; border-radius: 10px; border: 2px solid var(--dark); }
+
+        /* 住宿項目卡片 */
+        .hotel-card { background: var(--item); padding: 25px; border-radius: 35px; margin-bottom: 25px; display: flex; align-items: center; gap: 20px; position: relative; width: 100%; box-sizing: border-box; }
+        .hotel-info-wrapper { flex-grow: 1; display: flex; flex-direction: column; }
+        .hotel-title { text-align: center; font-size: 1.4rem; font-weight: bold; margin-bottom: 15px; }
+        .hotel-info-row { display: flex; align-items: center; margin-bottom: 12px; gap: 15px; }
+        .info-label { font-weight: bold; min-width: 50px; }
+        .info-box { background: white; flex-grow: 1; padding: 12px 18px; border-radius: 15px; font-size: 1rem; min-height: 24px; word-break: break-all; color: #333; }
+
+        /* ★★★ 修改重點：刪除按鈕美化 (與支出頁面一致) ★★★ */
+        .trash-btn { 
+            width: 45px; 
+            height: 45px; 
+            background: var(--money-bg); 
+            border-radius: 50%; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            cursor: pointer; 
+            border: none; 
+            flex-shrink: 0; 
+        }
+        .trash-btn i { color: #E6DED3; font-size: 20px; }
+
+        .bottom-add-btn { background: white; border: none; padding: 12px 50px; border-radius: 35px; font-weight: bold; font-size: 1.3rem; cursor: pointer; color: var(--dark); }
+        .bottom-area { display: flex; justify-content: center; margin-top: 25px; }
+
+        /* 彈窗樣式 */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); z-index: 2000; justify-content: center; align-items: center; }
+        .add-modal { background: var(--nav); padding: 40px; border-radius: 50px; width: 450px; text-align: center; }
+        .modal-input { width: 85%; padding: 15px; border-radius: 30px; border: none; text-align: center; font-size: 1.2rem; margin-bottom: 20px; outline: none; }
+        .modal-sub-btn { background: var(--item); border: none; padding: 10px 40px; border-radius: 20px; font-weight: bold; cursor: pointer; color: white; }
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <button class="nav-btn" onclick="location.href='date-plan.html'">日期</button>
+    <button class="nav-btn" onclick="location.href='location.html'">地點</button>
+    <button class="nav-btn active">住宿</button>
+    <button class="nav-btn" onclick="location.href='spots.html'">景點</button>
+    <button class="nav-btn" onclick="location.href='expense.html'">支出</button>
+    <button class="nav-btn" onclick="location.href='settle.html'">支出結算</button>
+    
+    <div class="user-avatar" onclick="toggleUserMenu(event)">
+        <i class="fa-solid fa-user"></i>
+    </div>
+    
+    <div id="userMenu" class="user-menu" onclick="event.stopPropagation()">
+        <div class="user-info-row">
+            <span class="user-label">帳號名稱</span>
+            <div class="user-name-box" onclick="changeName()" title="點擊修改暱稱">
+                <span id="uName" style="flex-grow:1; text-align:center;"></span>
+                <i class="fa-solid fa-pen edit-icon"></i>
+            </div>
+        </div>
+        <button class="logout-btn" onclick="logout()">登出</button>
+    </div>
+</div>
+
+<div class="main-card">
+    <h2 style="text-align:center; margin-top:0; font-size: 1.8rem;">住宿</h2>
+    <div class="scroll-box" id="hotelList">
+        <div class="loading-text">正在讀取住宿選項...</div>
+    </div>
+    <div class="bottom-area">
+        <button class="bottom-add-btn" onclick="openAddModal()">新增住宿</button>
+    </div>
+</div>
+
+<div id="addModal" class="modal-overlay">
+    <div class="add-modal" onclick="event.stopPropagation()">
+        <h3>新增住宿</h3>
+        <input type="text" id="hotelNameInput" class="modal-input" placeholder="住宿名稱">
+        <input type="text" id="hotelUrlInput" class="modal-input" placeholder="網址 (如 Agoda, Booking)">
+        <div style="display:flex; justify-content: center; gap:25px;">
+            <button class="modal-sub-btn" onclick="closeAddModal()">取消</button>
+            <button class="modal-sub-btn" onclick="submitHotel()">確認</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const API = "https://script.google.com/macros/s/AKfycbydMNR1nzMXrq2I3AVaYFJXtwBV5BlG6IRpABjv-3gzVl_mLS2nsrGjoU7iYXEWnlIjcA/exec";
+    const room = localStorage.getItem('roomName');
+    
+    // ★★★ 修正重點1：使用 username 取代 loginUser ★★★
+    const username = localStorage.getItem('username');
+
+    window.onload = () => {
+        // ★★★ 修正重點2：確保 username 存在且不為 "null" ★★★
+        if(!room || !username || username === "null") { 
+            alert("連線逾時，請重新登入！");
+            location.href='index.html'; 
+            return; 
+        }
+        document.getElementById('uName').innerText = username;
+        loadHotels();
+    };
+
+    function toggleUserMenu(e) {
+        if(e) e.stopPropagation();
+        const menu = document.getElementById('userMenu');
+        menu.style.display = (menu.style.display === 'flex') ? 'none' : 'flex';
+    }
+
+    // 點擊空白處關閉選單
+    window.onclick = function(event) {
+        if (!event.target.closest('.user-avatar') && !event.target.closest('.user-menu')) {
+            const menu = document.getElementById('userMenu');
+            if (menu.style.display === 'flex') {
+                menu.style.display = 'none';
+            }
+        }
+        
+        // 點擊空白處關閉彈窗
+        const modal = document.getElementById('addModal');
+        if (event.target === modal) {
+            closeAddModal();
+        }
+    }
+
+    // ★★★ 修改暱稱功能 ★★★
+    async function changeName() {
+        const newName = prompt("請輸入新的暱稱：", username);
+        if (newName && newName.trim() !== "" && newName !== username) {
+             const uSpan = document.getElementById('uName');
+             const originalText = uSpan.innerText;
+             uSpan.innerText = "更新中...";
+             
+             try {
+                 const r = await fetch(API, {
+                     method: 'POST',
+                     body: JSON.stringify({
+                         action: 'updateUsername',
+                         oldName: username,
+                         newName: newName.trim()
+                     })
+                 });
+                 const txt = await r.text();
+                 if (txt === "success") {
+                     alert("更名成功！請重新整理頁面。");
+                     // ★★★ 修正重點3：儲存到正確的變數 username ★★★
+                     localStorage.setItem('username', newName.trim());
+                     location.reload();
+                 } else if (txt === "exists") {
+                     alert("此暱稱已有人使用");
+                     uSpan.innerText = originalText;
+                 } else {
+                     alert("更名失敗：" + txt);
+                     uSpan.innerText = originalText;
+                 }
+             } catch (e) {
+                 alert("連線錯誤");
+                 uSpan.innerText = originalText;
+             }
+        }
+    }
+
+    function logout() {
+        if(confirm("確定要登出嗎？")) {
+            localStorage.clear();
+            location.href = 'index.html';
+        }
+    }
+
+    function checkUrlSafety(url) {
+        if (!url) return "網址不安全";
+        const safeDomains = ['booking.com', 'agoda.com', 'hotels.com', 'expedia.com', 'trivago.com', 'airbnb.com'];
+        const isSafe = safeDomains.some(domain => url.toLowerCase().includes(domain));
+        return isSafe ? "網址安全" : "網址不安全";
+    }
+
+    async function loadHotels() {
+        const container = document.getElementById('hotelList');
+        container.innerHTML = '<div class="loading-text">正在讀取住宿選項...</div>';
+        
+        try {
+            const r = await fetch(API, {method:'POST', body: JSON.stringify({action:'getHotels', roomName:room})});
+            const hotels = await r.json();
+            let h = '';
+            
+            if (hotels.length === 0) {
+                h = '<div class="loading-text">目前尚無住宿紀錄。</div>';
+            } else {
+                hotels.forEach(item => {
+                    const safety = checkUrlSafety(item.url);
+                    h += `
+                    <div class="hotel-card">
+                        <div class="hotel-info-wrapper">
+                            <div class="hotel-title">${item.name}</div>
+                            <div class="hotel-info-row">
+                                <span class="info-label">網址</span>
+                                <div class="info-box"><a href="${item.url}" target="_blank" style="color:#333; text-decoration:none;">${item.url}</a></div>
+                            </div>
+                            <div class="hotel-info-row">
+                                <span class="info-label">備註</span>
+                                <div class="info-box">${safety}</div>
+                            </div>
+                        </div>
+                        <button class="trash-btn" onclick="deleteHotel('${item.id}', this)">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>`;
+                });
+            }
+            container.innerHTML = h;
+        } catch(e) {
+            container.innerHTML = '<div class="loading-text">載入失敗，請重新整理。</div>';
+        }
+    }
+
+    function openAddModal() { document.getElementById('addModal').style.display='flex'; }
+    function closeAddModal() { 
+        document.getElementById('addModal').style.display='none'; 
+        document.getElementById('hotelNameInput').value='';
+        document.getElementById('hotelUrlInput').value='';
+    }
+
+    async function submitHotel() {
+        const name = document.getElementById('hotelNameInput').value.trim();
+        const url = document.getElementById('hotelUrlInput').value.trim();
+        if(!name || !url) return alert("請填寫完整資訊");
+
+        const container = document.getElementById('hotelList');
+        container.innerHTML = '<div class="loading-text">正在儲存中...</div>';
+
+        await fetch(API, {method:'POST', body: JSON.stringify({
+            action: 'addHotel',
+            roomName: room,
+            hotelName: name,
+            hotelUrl: url
+        })});
+        
+        closeAddModal();
+        loadHotels();
+    }
+
+    async function deleteHotel(id, btnElement) {
+        if(confirm("確定要刪除這筆住宿紀錄嗎？")) {
+            const card = btnElement.closest('.hotel-card');
+            if(card) card.style.opacity = '0.5'; 
+            
+            await fetch(API, {method:'POST', body: JSON.stringify({action:'deleteHotel', hotelId: id})});
+            loadHotels();
+        }
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新增房間 - 出遊輕鬆GO</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #E6DED3;
+            font-family: "Microsoft JhengHei", sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .room-card {
+            background-color: #CDC1B0;
+            width: 90%;
+            max-width: 500px;
+            padding: 60px 40px;
+            border-radius: 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0px 20px 40px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .room-label {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #4A3E31;
+            margin-bottom: 15px;
+        }
+
+        .room-input {
+            width: 100%;
+            background-color: #FFFFFF;
+            border: none;
+            border-radius: 40px;
+            padding: 20px;
+            font-size: 1.4rem;
+            margin-bottom: 35px;
+            text-align: center;
+            outline: none;
+            box-sizing: border-box;
+            box-shadow: inset 0px 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .button-row {
+            display: flex;
+            gap: 20px;
+        }
+
+        .action-btn {
+            background-color: #BCB0A0;
+            border: none;
+            padding: 15px 45px;
+            border-radius: 30px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #4A3E31;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .action-btn:hover {
+            background-color: #A99E8F;
+        }
+
+        /* 彈窗樣式 */
+        .overlay-mask {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-main {
+            background-color: #CDC1B0;
+            padding: 60px 50px;
+            border-radius: 50px;
+            position: relative;
+            text-align: center;
+            box-shadow: 0px 20px 40px rgba(0,0,0,0.2);
+        }
+
+        .modal-white-inner {
+            background-color: #FFFFFF;
+            padding: 30px 50px;
+            border-radius: 25px;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #333333;
+            min-width: 250px;
+        }
+
+        .close-x {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #FF5F56;
+            color: white;
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="room-card" id="card-container">
+        <div class="room-label">房間名稱：</div>
+        <input type="text" id="roomName" class="room-input" placeholder="例如：畢業旅行">
+
+        <div class="room-label">密碼：</div>
+        <input type="password" id="roomPass" class="room-input" placeholder="設定房間密碼">
+
+        <div class="button-row">
+            <button class="action-btn" onclick="location.href='home.html'">取消</button>
+            <button class="action-btn" id="submit-btn" onclick="submitNewRoom()">確認</button>
+        </div>
+    </div>
+
+    <div id="modal-room-success" class="overlay-mask">
+        <div class="modal-main">
+            <button class="close-x" onclick="location.href='home.html'">✕</button>
+            <div class="modal-white-inner">房間新增成功！</div>
+            <p style="color: #4A3E31; margin-top: 20px; font-weight: bold;">點擊 ✕ 或等待自動返回首頁</p>
+        </div>
+    </div>
+
+    <div id="modal-room-exists" class="overlay-mask">
+        <div class="modal-main">
+            <button class="close-x" onclick="closeRoomModal()">✕</button>
+            <div class="modal-white-inner">房間名稱已被使用</div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbydMNR1nzMXrq2I3AVaYFJXtwBV5BlG6IRpABjv-3gzVl_mLS2nsrGjoU7iYXEWnlIjcA/exec";
+
+        function closeRoomModal() {
+            document.getElementById('modal-room-exists').style.display = 'none';
+        }
+
+        async function submitNewRoom() {
+            const nameEl = document.getElementById('roomName');
+            const passEl = document.getElementById('roomPass');
+            const submitBtn = document.getElementById('submit-btn');
+            
+            const name = nameEl.value.trim();
+            const pass = passEl.value.trim();
+
+            if(!name || !pass) { 
+                alert("請填寫完整的房間名稱與密碼"); 
+                return; 
+            }
+
+            submitBtn.innerText = "處理中...";
+            document.getElementById('card-container').classList.add('loading');
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    mode: 'cors',
+                    body: JSON.stringify({ 
+                        action: 'addRoom', 
+                        roomName: name, 
+                        roomPass: pass 
+                    })
+                });
+
+                const result = await response.text();
+                const cleanResult = result.trim();
+
+                if (cleanResult === "exists") {
+                    document.getElementById('modal-room-exists').style.display = 'flex';
+                } else if (cleanResult === "add_success") {
+                    document.getElementById('modal-room-success').style.display = 'flex';
+                    // 2.5 秒後自動跳轉回首頁 (home.html)
+                    setTimeout(() => {
+                        location.href = 'home.html';
+                    }, 2500);
+                } else {
+                    alert("新增失敗：" + cleanResult);
+                }
+
+            } catch (error) {
+                console.error("連線錯誤：", error);
+                alert("連線失敗，請檢查 API 網址");
+            } finally {
+                submitBtn.innerText = "確認";
+                document.getElementById('card-container').classList.remove('loading');
+            }
+        }
+
+        document.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') submitNewRoom();
+        });
+    </script>
+</body>
+</html>

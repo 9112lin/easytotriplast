@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>登入帳號 - 出遊輕鬆GO</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #E6DED3;
+            font-family: "Microsoft JhengHei", sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .login-box {
+            background-color: #CDC1B0;
+            width: 450px;
+            padding: 50px 30px;
+            border-radius: 50px;
+            box-shadow: 0px 10px 30px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .form-label {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .white-input {
+            width: 85%;
+            background-color: #FFFFFF;
+            border: none;
+            border-radius: 30px;
+            padding: 15px 25px;
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            text-align: center;
+            outline: none;
+        }
+
+        .btn-container {
+            display: flex;
+            gap: 30px;
+        }
+
+        .action-btn {
+            background-color: #BCB0A0;
+            border: none;
+            padding: 10px 40px;
+            border-radius: 20px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .kb-icon {
+            position: absolute;
+            bottom: -30px;
+            left: -80px;
+            font-size: 120px;
+            opacity: 0.2;
+            pointer-events: none;
+        }
+
+        /* 登入失敗彈窗 */
+        #fail-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-body-fail {
+            background-color: #CDC1B0;
+            padding: 50px 70px;
+            border-radius: 40px;
+            position: relative;
+        }
+
+        .modal-text-box-white {
+            background-color: white;
+            padding: 20px 40px;
+            border-radius: 20px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            line-height: 1.6;
+            text-align: center;
+        }
+
+        .close-red-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: #FF5F56;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-box">
+        <div class="form-label">帳號名稱</div>
+        <input type="text" id="log_user" class="white-input">
+
+        <div class="form-label">密碼：</div>
+        <input type="password" id="log_pass" class="white-input">
+
+        <div class="btn-container">
+            <button class="action-btn" onclick="location.href='index.html'">取消</button>
+            <button class="action-btn" onclick="sendLogin()">確認</button>
+        </div>
+
+        <div class="kb-icon">⌨️</div>
+    </div>
+
+    <div id="fail-modal">
+        <div class="modal-body-fail">
+            <button class="close-red-btn" onclick="document.getElementById('fail-modal').style.display='none'">✕</button>
+            <div class="modal-text-box-white">
+                帳號名稱與密碼錯誤<br>請重試
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ★★★ 請確認這個 URL 是否為您最新部署的網址 ★★★
+        const API_URL = "https://script.google.com/macros/s/AKfycbydMNR1nzMXrq2I3AVaYFJXtwBV5BlG6IRpABjv-3gzVl_mLS2nsrGjoU7iYXEWnlIjcA/exec";
+
+        async function sendLogin() {
+            const user = document.getElementById('log_user').value.trim();
+            const pass = document.getElementById('log_pass').value.trim();
+
+            if(!user || !pass) { alert("請輸入帳號密碼"); return; }
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'login', username: user, password: pass })
+                });
+                const result = await response.text();
+
+                if (result.trim() === "success") {
+                    // ★★★ 關鍵修改處 ★★★
+                    // 原本是 'loginUser'，改成 'username'
+                    // 這樣 lobby.html 才能抓到正確的資料
+                    localStorage.setItem('username', user);
+                    
+                    // 登入成功後，跳轉到首頁(home.html) 或 您的房間選擇頁
+                    // (如果您之後要直接進大廳，這裡可能需要改成別的流程，目前維持您原碼的 home.html)
+                    location.href = 'home.html'; 
+                } else {
+                    document.getElementById('fail-modal').style.display = 'flex';
+                }
+            } catch (e) {
+                alert("系統連線錯誤：" + e);
+            }
+        }
+    </script>
+</body>
+</html>
